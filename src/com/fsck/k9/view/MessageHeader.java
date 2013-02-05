@@ -6,7 +6,6 @@ import android.os.Parcel;
 import android.os.Parcelable;
 import android.text.SpannableString;
 import android.text.SpannableStringBuilder;
-import android.text.TextUtils;
 import android.text.style.StyleSpan;
 import android.util.Log;
 import android.util.AttributeSet;
@@ -17,6 +16,7 @@ import android.view.View.OnClickListener;
 import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.ScrollView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 import com.fsck.k9.FontSizes;
@@ -50,8 +50,12 @@ public class MessageHeader extends ScrollView implements OnClickListener {
     private DateFormat mTimeFormat;
 
     private View mChip;
+    private View mChip2;
+    private View mChip3;
     private CheckBox mFlagged;
     private int defaultSubjectColor;
+    private LinearLayout mToContainerView;
+    private LinearLayout mCcContainerView;
     private TextView mAdditionalHeadersView;
     private View mAnsweredIcon;
     private View mForwardedIcon;
@@ -92,9 +96,13 @@ public class MessageHeader extends ScrollView implements OnClickListener {
         mFromView = (TextView) findViewById(R.id.from);
         mToView = (TextView) findViewById(R.id.to);
         mCcView = (TextView) findViewById(R.id.cc);
+        mToContainerView = (LinearLayout) findViewById(R.id.to_container);
+        mCcContainerView = (LinearLayout) findViewById(R.id.cc_container);
         mSubjectView = (TextView) findViewById(R.id.subject);
         mAdditionalHeadersView = (TextView) findViewById(R.id.additional_headers_view);
         mChip = findViewById(R.id.chip);
+        mChip2 = findViewById(R.id.chip2);
+        mChip3 = findViewById(R.id.chip3);
         mDateView = (TextView) findViewById(R.id.date);
         mTimeView = (TextView) findViewById(R.id.time);
         mFlagged = (CheckBox) findViewById(R.id.flagged);
@@ -113,8 +121,11 @@ public class MessageHeader extends ScrollView implements OnClickListener {
         mFromView.setTextSize(TypedValue.COMPLEX_UNIT_SP, mFontSizes.getMessageViewSender());
         mToView.setTextSize(TypedValue.COMPLEX_UNIT_SP, mFontSizes.getMessageViewTo());
         mCcView.setTextSize(TypedValue.COMPLEX_UNIT_SP, mFontSizes.getMessageViewCC());
+        ((TextView) findViewById(R.id.to_label)).setTextSize(TypedValue.COMPLEX_UNIT_SP, mFontSizes.getMessageViewTo());
+        ((TextView) findViewById(R.id.cc_label)).setTextSize(TypedValue.COMPLEX_UNIT_SP, mFontSizes.getMessageViewCC());
 
-        mShowAdditionalHeadersIcon.setOnClickListener(this);
+        findViewById(R.id.show_additional_headers_area).setOnClickListener(this);
+        findViewById(R.id.additional_headers_row).setOnClickListener(this);
         mFromView.setOnClickListener(this);
         mToView.setOnClickListener(this);
         mCcView.setOnClickListener(this);
@@ -123,7 +134,8 @@ public class MessageHeader extends ScrollView implements OnClickListener {
     @Override
     public void onClick(View view) {
         switch (view.getId()) {
-            case R.id.show_additional_headers_icon: {
+            case R.id.additional_headers_row:
+            case R.id.show_additional_headers_area: {
                 onShowAdditionalHeaders();
                 break;
             }
@@ -244,8 +256,10 @@ public class MessageHeader extends ScrollView implements OnClickListener {
             mDateView.setVisibility(View.GONE);
         }
         mTimeView.setText(time);
-        updateAddressField(mToView, to, R.string.message_to_label);
-        updateAddressField(mCcView, cc, R.string.message_view_cc_label);
+        mToContainerView.setVisibility((to != null && to.length() > 0) ? View.VISIBLE : View.GONE);
+        mToView.setText(to);
+        mCcContainerView.setVisibility((cc != null && cc.length() > 0) ? View.VISIBLE : View.GONE);
+        mCcView.setText(cc);
         mAnsweredIcon.setVisibility(message.isSet(Flag.ANSWERED) ? View.VISIBLE : View.GONE);
         mForwardedIcon.setVisibility(message.isSet(Flag.FORWARDED) ? View.VISIBLE : View.GONE);
         mFlagged.setChecked(message.isSet(Flag.FLAGGED));
@@ -254,6 +268,10 @@ public class MessageHeader extends ScrollView implements OnClickListener {
         int chipColorAlpha = (!message.isSet(Flag.SEEN)) ? 255 : 127;
         mChip.setBackgroundColor(chipColor);
         mChip.getBackground().setAlpha(chipColorAlpha);
+        mChip2.setBackgroundColor(chipColor);
+        mChip2.getBackground().setAlpha(chipColorAlpha);
+        mChip3.setBackgroundColor(chipColor);
+        mChip3.getBackground().setAlpha(chipColorAlpha);
 
         setVisibility(View.VISIBLE);
 
@@ -279,26 +297,6 @@ public class MessageHeader extends ScrollView implements OnClickListener {
             expand(mCcView, true);
         }
         layoutChanged();
-    }
-
-    private static final StyleSpan sBoldSpan = new StyleSpan(Typeface.BOLD);
-
-    private void updateAddressField(TextView v, CharSequence address, int prefixId) {
-        if (TextUtils.isEmpty(address)) {
-            v.setVisibility(View.GONE);
-            return;
-        }
-
-        final SpannableStringBuilder text = new SpannableStringBuilder();
-        final String prefix = mContext.getString(prefixId);
-
-        text.append(prefix);
-        text.append(" ");
-        text.append(address);
-        text.setSpan(sBoldSpan, 0, prefix.length(), 0);
-
-        v.setText(text);
-        v.setVisibility(View.VISIBLE);
     }
 
     /**
@@ -388,6 +386,7 @@ public class MessageHeader extends ScrollView implements OnClickListener {
     static class SavedState extends BaseSavedState {
         boolean additionalHeadersVisible;
 
+        @SuppressWarnings("hiding")
         public static final Parcelable.Creator<SavedState> CREATOR =
                 new Parcelable.Creator<SavedState>() {
             @Override
@@ -432,7 +431,10 @@ public class MessageHeader extends ScrollView implements OnClickListener {
         }
     }
 
-    public void hideSubjectLine() {
-        mSubjectView.setVisibility(GONE);
+    /**
+     * The subject line defaults to GONE.  Make it visible.
+     */
+    public void showSubjectLine() {
+        mSubjectView.setVisibility(VISIBLE);
     }
 }

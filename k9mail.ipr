@@ -128,6 +128,8 @@
       <directory url="file://$PROJECT_DIR$/plugins/ActionBarSherlock/library/target/generated-test-sources/test-annotations" includeSubdirectories="true" />
       <directory url="file://$PROJECT_DIR$/plugins/HoloColorPicker/target/generated-sources/r" includeSubdirectories="true" />
       <directory url="file://$PROJECT_DIR$/plugins/HoloColorPicker/library/target/generated-sources/r" includeSubdirectories="true" />
+      <directory url="file://$PROJECT_DIR$/plugins/HoloColorPicker/gen" includeSubdirectories="true" />
+      <directory url="file://$PROJECT_DIR$/plugins/ckChangeLog/library/gen" includeSubdirectories="true" />
     </excludeFromCompile>
     <resourceExtensions>
       <entry name=".+\.(properties|xml|html|dtd|tld)" />
@@ -145,29 +147,7 @@
       <entry name="?*.tld" />
       <entry name="?*.ftl" />
     </wildcardResourcePatterns>
-    <annotationProcessing>
-      <profile default="true" name="Default" enabled="false">
-        <processorPath useClasspath="true" />
-      </profile>
-      <profile default="false" name="Maven default annotation processors profile" enabled="true">
-        <sourceOutputDir name="target/generated-sources/annotations" />
-        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
-        <outputRelativeToContentRoot value="true" />
-        <processorPath useClasspath="true" />
-        <module name="ActionBarSherlock" />
-        <module name="Android-PullToRefresh" />
-        <module name="ckChangeLog" />
-        <module name="HoloColorPicker" />
-      </profile>
-    </annotationProcessing>
-    <bytecodeTargetLevel>
-      <module name="ActionBarSherlock" target="1.6" />
-      <module name="Android-PullToRefresh" target="1.6" />
-      <module name="ckChangeLog" target="1.6" />
-      <module name="colorpicker" target="1.6" />
-      <module name="HoloColorPicker" target="1.6" />
-      <module name="k9mail" target="1.6" />
-    </bytecodeTargetLevel>
+    <annotationProcessing enabled="false" useClasspath="true" />
   </component>
   <component name="CopyrightManager" default="">
     <module2copyright />
@@ -214,6 +194,9 @@
   </component>
   <component name="IvyProjectSettings">
     <dependencies />
+  </component>
+  <component name="JavacSettings">
+    <option name="ADDITIONAL_OPTIONS_STRING" value="-target 1.6" />
   </component>
   <component name="JavadocGenerationManager">
     <option name="OUTPUT_DIRECTORY" />
@@ -417,7 +400,7 @@
   <component name="ProjectResources">
     <default-html-doctype>http://www.w3.org/1999/xhtml</default-html-doctype>
   </component>
-  <component name="ProjectRootManager" version="2" languageLevel="JDK_1_6" assert-keyword="true" jdk-15="true" project-jdk-name="Android 4.1 Platform" project-jdk-type="Android SDK">
+  <component name="ProjectRootManager" version="2" languageLevel="JDK_1_6" assert-keyword="true" jdk-15="true" project-jdk-name="Android 4.2 Platform" project-jdk-type="Android SDK">
     <output url="file://$PROJECT_DIR$/out" />
   </component>
   <component name="StarteamConfiguration">
@@ -529,7 +512,7 @@
     </library>
     <library name="Maven: com.google.android:support-v4:r99">
       <CLASSES>
-        <root url="jar://$PROJECT_DIR$/plugins/ActionBarSherlock/library/libs/android-support-v4.jar!/" />
+        <root url="jar://$PROJECT_DIR$/plugins/HoloColorPicker/libs/android-support-v4.jar!/" />
       </CLASSES>
       <JAVADOC />
       <SOURCES />

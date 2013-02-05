@@ -6,13 +6,14 @@ import java.util.Collections;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences.Editor;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.FragmentManager;
 import android.util.Log;
-import android.view.ContextThemeWrapper;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -21,6 +22,9 @@ import android.view.ViewGroup;
 import android.widget.Toast;
 
 import com.actionbarsherlock.app.SherlockFragment;
+import com.actionbarsherlock.view.Menu;
+import com.actionbarsherlock.view.MenuInflater;
+import com.actionbarsherlock.view.MenuItem;
 import com.fsck.k9.Account;
 import com.fsck.k9.K9;
 import com.fsck.k9.Preferences;
@@ -71,12 +75,15 @@ public class MessageViewFragment extends SherlockFragment implements OnClickList
 
     private SingleMessageView mMessageView;
     private PgpData mPgpData;
+    private Menu mMenu;
     private Account mAccount;
     private MessageReference mMessageReference;
     private Message mMessage;
     private MessagingController mController;
     private Listener mListener = new Listener();
     private MessageViewHandler mHandler = new MessageViewHandler();
+
+    private MenuItem mToggleMessageViewMenu;
 
     /** this variable is used to save the calling AttachmentView
      *  until the onActivityResult is called.
@@ -92,19 +99,11 @@ public class MessageViewFragment extends SherlockFragment implements OnClickList
 
     private MessageViewFragmentListener mFragmentListener;
 
-    /**
-     * {@code true} after {@link #onCreate(Bundle)} has been executed. This is used by
-     * {@code MessageList.configureMenu()} to make sure the fragment has been initialized before
-     * it is used.
-     */
-    private boolean mInitialized = false;
-
 
     class MessageViewHandler extends Handler {
 
         public void progress(final boolean progress) {
             post(new Runnable() {
-                @Override
                 public void run() {
                     setProgress(progress);
                 }
@@ -113,7 +112,6 @@ public class MessageViewFragment extends SherlockFragment implements OnClickList
 
         public void addAttachment(final View attachmentView) {
             post(new Runnable() {
-                @Override
                 public void run() {
                     mMessageView.addAttachment(attachmentView);
                 }
@@ -123,7 +121,6 @@ public class MessageViewFragment extends SherlockFragment implements OnClickList
         /* A helper for a set of "show a toast" methods */
         private void showToast(final String message, final int toastLength)  {
             post(new Runnable() {
-                @Override
                 public void run() {
                     Toast.makeText(getActivity(), message, toastLength).show();
                 }
@@ -164,16 +161,13 @@ public class MessageViewFragment extends SherlockFragment implements OnClickList
         setHasOptionsMenu(true);
 
         mController = MessagingController.getInstance(getActivity().getApplication());
-        mInitialized = true;
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
             Bundle savedInstanceState) {
-        Context context = new ContextThemeWrapper(getActivity().getApplicationContext(),
-                K9.getK9ThemeResourceId(K9.getK9MessageViewTheme()));
-        LayoutInflater localInflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        View view = localInflater.inflate(R.layout.message, container, false);
+
+        View view = inflater.inflate(R.layout.message, container, false);
 
 
         mMessageView = (SingleMessageView) view.findViewById(R.id.message_view);
@@ -260,8 +254,7 @@ public class MessageViewFragment extends SherlockFragment implements OnClickList
         mMessageView.resetHeaderView();
 
         mController.loadMessageForView(mAccount, mMessageReference.folderName, mMessageReference.uid, mListener);
-
-        mFragmentListener.updateMenu();
+        configureMenu(mMenu);
     }
 
     /**
@@ -279,7 +272,7 @@ public class MessageViewFragment extends SherlockFragment implements OnClickList
         if (mMessage != null) {
             // Disable the delete button after it's tapped (to try to prevent
             // accidental clicks)
-            mFragmentListener.disableDeleteAction();
+            mMenu.findItem(R.id.delete).setEnabled(false);
             Message messageToDelete = mMessage;
             mFragmentListener.showNextMessageOrReturn();
             mController.deleteMessages(Collections.singletonList(messageToDelete), null);
@@ -333,7 +326,7 @@ public class MessageViewFragment extends SherlockFragment implements OnClickList
         }
     }
 
-    public void onToggleFlagged() {
+    public void onFlag() {
         if (mMessage != null) {
             boolean newState = !mMessage.isSet(Flag.FLAGGED);
             mController.setFlag(mAccount, mMessage.getFolder().getName(),
@@ -371,16 +364,26 @@ public class MessageViewFragment extends SherlockFragment implements OnClickList
         startRefileActivity(ACTIVITY_CHOOSE_FOLDER_COPY);
     }
 
-    public void onArchive() {
-        onRefile(mAccount.getArchiveFolderName());
-    }
+    private void onToggleColors() {
+        if (K9.getK9MessageViewTheme() == K9.THEME_DARK) {
+            K9.setK9MessageViewTheme(K9.THEME_LIGHT);
+        } else {
+            K9.setK9MessageViewTheme(K9.THEME_DARK);
+        }
 
-    public void onSpam() {
-        onRefile(mAccount.getSpamFolderName());
-    }
+        new AsyncTask<Object, Object, Object>() {
+            @Override
+            protected Object doInBackground(Object... params) {
+                Context appContext = getActivity().getApplicationContext();
+                Preferences prefs = Preferences.getPreferences(appContext);
+                Editor editor = prefs.getPreferences().edit();
+                K9.save(editor);
+                editor.commit();
+                return null;
+            }
+        }.execute();
 
-    public void onSelectText() {
-        mMessageView.beginSelectingText();
+        mFragmentListener.restartActivity();
     }
 
     private void startRefileActivity(int activity) {
@@ -444,20 +447,20 @@ public class MessageViewFragment extends SherlockFragment implements OnClickList
         }
     }
 
-    public void onSendAlternate() {
+    private void onSendAlternate() {
         if (mMessage != null) {
             mController.sendAlternate(getActivity(), mAccount, mMessage);
         }
     }
 
-    public void onToggleRead() {
+    private void onToggleRead() {
         if (mMessage != null) {
             mController.setFlag(mAccount, mMessage.getFolder().getName(),
                     new Message[] { mMessage }, Flag.SEEN, !mMessage.isSet(Flag.SEEN));
             mMessageView.setHeaders(mMessage, mAccount);
             String subject = mMessage.getSubject();
             displayMessageSubject(subject);
-            mFragmentListener.updateMenu();
+            updateUnreadToggleTitle();
         }
     }
 
@@ -480,6 +483,125 @@ public class MessageViewFragment extends SherlockFragment implements OnClickList
                 onDownloadRemainder();
                 break;
             }
+        }
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+        case R.id.delete:
+            onDelete();
+            break;
+        case R.id.reply:
+            onReply();
+            break;
+        case R.id.reply_all:
+            onReplyAll();
+            break;
+        case R.id.forward:
+            onForward();
+            break;
+        case R.id.share:
+            onSendAlternate();
+            break;
+        case R.id.toggle_unread:
+            onToggleRead();
+            break;
+        case R.id.archive:
+            onRefile(mAccount.getArchiveFolderName());
+            break;
+        case R.id.spam:
+            onRefile(mAccount.getSpamFolderName());
+            break;
+        case R.id.move:
+            onMove();
+            break;
+        case R.id.copy:
+            onCopy();
+            break;
+        case R.id.select_text:
+            mMessageView.beginSelectingText();
+            break;
+        case R.id.toggle_message_view_theme:
+            onToggleColors();
+            break;
+        default:
+            return super.onOptionsItemSelected(item);
+        }
+        return true;
+    }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        inflater.inflate(R.menu.message_view_fragment, menu);
+        mMenu = menu;
+        configureMenu(menu);
+    }
+
+    private void configureMenu(Menu menu) {
+        // In Android versions prior to 4.2 onCreateOptionsMenu() (which calls us) is called before
+        // onActivityCreated() when mAccount isn't initialized yet. In that case we do nothing and
+        // wait for displayMessage() to call us again.
+        if (menu == null || mAccount == null) {
+            return;
+        }
+
+        // enable them all
+        menu.findItem(R.id.copy).setVisible(true);
+        menu.findItem(R.id.move).setVisible(true);
+        menu.findItem(R.id.archive).setVisible(true);
+        menu.findItem(R.id.spam).setVisible(true);
+
+        mToggleMessageViewMenu = menu.findItem(R.id.toggle_message_view_theme);
+        if (K9.getK9MessageViewTheme() == K9.THEME_DARK) {
+            mToggleMessageViewMenu.setTitle(R.string.message_view_theme_action_light);
+        } else {
+            mToggleMessageViewMenu.setTitle(R.string.message_view_theme_action_dark);
+        }
+
+        toggleActionsState(menu, true);
+
+        updateUnreadToggleTitle();
+
+        // check message, folder capability
+        if (!mController.isCopyCapable(mAccount)) {
+            menu.findItem(R.id.copy).setVisible(false);
+        }
+
+        if (mController.isMoveCapable(mAccount)) {
+            menu.findItem(R.id.move).setVisible(true);
+
+            menu.findItem(R.id.archive).setVisible(
+                !mMessageReference.folderName.equals(mAccount.getArchiveFolderName())
+                    && mAccount.hasArchiveFolder());
+
+            menu.findItem(R.id.spam).setVisible(
+                !mMessageReference.folderName.equals(mAccount.getSpamFolderName())
+                    && mAccount.hasSpamFolder());
+        } else {
+            menu.findItem(R.id.copy).setVisible(false);
+            menu.findItem(R.id.move).setVisible(false);
+            menu.findItem(R.id.archive).setVisible(false);
+            menu.findItem(R.id.spam).setVisible(false);
+        }
+    }
+
+    /**
+     * Set the title of the "Toggle Unread" menu item based upon the current read state of the message.
+     */
+    public void updateUnreadToggleTitle() {
+        if (mMessage != null && mMenu != null) {
+            if (mMessage.isSet(Flag.SEEN)) {
+                mMenu.findItem(R.id.toggle_unread).setTitle(R.string.mark_as_unread_action);
+            } else {
+                mMenu.findItem(R.id.toggle_unread).setTitle(R.string.mark_as_read_action);
+            }
+        }
+    }
+
+    private void toggleActionsState(Menu menu, boolean state) {
+        for (int i = 0; i < menu.size(); ++i) {
+            menu.getItem(i).setEnabled(state);
         }
     }
 
@@ -529,7 +651,6 @@ public class MessageViewFragment extends SherlockFragment implements OnClickList
             final Message clonedMessage = message.clone();
 
             mHandler.post(new Runnable() {
-                @Override
                 public void run() {
                     if (!clonedMessage.isSet(Flag.X_DOWNLOADED_FULL) &&
                             !clonedMessage.isSet(Flag.X_DOWNLOADED_PARTIAL)) {
@@ -546,7 +667,7 @@ public class MessageViewFragment extends SherlockFragment implements OnClickList
                     mMessageView.setOnFlagListener(new OnClickListener() {
                         @Override
                         public void onClick(View v) {
-                            onToggleFlagged();
+                            onFlag();
                         }
                     });
                 }
@@ -569,7 +690,7 @@ public class MessageViewFragment extends SherlockFragment implements OnClickList
                         mMessage = message;
                         mMessageView.setMessage(account, (LocalMessage) message, mPgpData,
                                 mController, mListener);
-                        mFragmentListener.updateMenu();
+                        updateUnreadToggleTitle();
 
                     } catch (MessagingException e) {
                         Log.v(K9.LOG_TAG, "loadMessageForViewBodyAvailable", e);
@@ -585,7 +706,6 @@ public class MessageViewFragment extends SherlockFragment implements OnClickList
                 return;
             }
             mHandler.post(new Runnable() {
-                @Override
                 public void run() {
                     setProgress(false);
                     if (t instanceof IllegalArgumentException) {
@@ -607,7 +727,6 @@ public class MessageViewFragment extends SherlockFragment implements OnClickList
                 return;
             }
             mHandler.post(new Runnable() {
-                @Override
                 public void run() {
                     setProgress(false);
                     mMessageView.setShowDownloadButton(message);
@@ -622,7 +741,6 @@ public class MessageViewFragment extends SherlockFragment implements OnClickList
                 return;
             }
             mHandler.post(new Runnable() {
-                @Override
                 public void run() {
                     setProgress(true);
                 }
@@ -635,7 +753,6 @@ public class MessageViewFragment extends SherlockFragment implements OnClickList
                 return;
             }
             mHandler.post(new Runnable() {
-                @Override
                 public void run() {
                     mMessageView.setAttachmentsEnabled(false);
                     showDialog(R.id.dialog_attachment_progress);
@@ -652,7 +769,6 @@ public class MessageViewFragment extends SherlockFragment implements OnClickList
                 return;
             }
             mHandler.post(new Runnable() {
-                @Override
                 public void run() {
                     mMessageView.setAttachmentsEnabled(true);
                     removeDialog(R.id.dialog_attachment_progress);
@@ -674,7 +790,6 @@ public class MessageViewFragment extends SherlockFragment implements OnClickList
                 return;
             }
             mHandler.post(new Runnable() {
-                @Override
                 public void run() {
                     mMessageView.setAttachmentsEnabled(true);
                     removeDialog(R.id.dialog_attachment_progress);
@@ -783,54 +898,15 @@ public class MessageViewFragment extends SherlockFragment implements OnClickList
         /* do nothing */
     }
 
-    /**
-     * Get the {@link MessageReference} of the currently displayed message.
-     */
-    public MessageReference getMessageReference() {
-        return mMessageReference;
-    }
-
-    public boolean isMessageRead() {
-        return (mMessage != null) ? mMessage.isSet(Flag.SEEN) : false;
-    }
-
-    public boolean isCopyCapable() {
-        return mController.isCopyCapable(mAccount);
-    }
-
-    public boolean isMoveCapable() {
-        return mController.isMoveCapable(mAccount);
-    }
-
-    public boolean canMessageBeArchived() {
-        return (!mMessageReference.folderName.equals(mAccount.getArchiveFolderName())
-                && mAccount.hasArchiveFolder());
-    }
-
-    public boolean canMessageBeMovedToSpam() {
-        return (!mMessageReference.folderName.equals(mAccount.getSpamFolderName())
-                && mAccount.hasSpamFolder());
-    }
-
-    public void updateTitle() {
-        if (mMessage != null) {
-            displayMessageSubject(mMessage.getSubject());
-        }
-    }
 
     public interface MessageViewFragmentListener {
         public void onForward(Message mMessage, PgpData mPgpData);
-        public void disableDeleteAction();
         public void onReplyAll(Message mMessage, PgpData mPgpData);
         public void onReply(Message mMessage, PgpData mPgpData);
         public void displayMessageSubject(String title);
         public void setProgress(boolean b);
+        public void restartActivity();
         public void showNextMessageOrReturn();
         public void messageHeaderViewAvailable(MessageHeader messageHeaderView);
-        public void updateMenu();
-    }
-
-    public boolean isInitialized() {
-        return mInitialized ;
     }
 }

@@ -26,7 +26,7 @@ import java.net.URLEncoder;
 
 public class AccountSetupOutgoing extends K9Activity implements OnClickListener,
     OnCheckedChangeListener {
-    private static final String EXTRA_ACCOUNT = "account";
+    public static final String EXTRA_ACCOUNT = "account";
 
     private static final String EXTRA_MAKE_DEFAULT = "makeDefault";
 
@@ -74,14 +74,10 @@ public class AccountSetupOutgoing extends K9Activity implements OnClickListener,
     }
 
     public static void actionEditOutgoingSettings(Context context, Account account) {
-        context.startActivity(intentActionEditOutgoingSettings(context, account));
-    }
-
-    public static Intent intentActionEditOutgoingSettings(Context context, Account account) {
         Intent i = new Intent(context, AccountSetupOutgoing.class);
         i.setAction(Intent.ACTION_EDIT);
         i.putExtra(EXTRA_ACCOUNT, account.getUuid());
-        return i;
+        context.startActivity(i);
     }
 
     @Override

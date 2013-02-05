@@ -848,7 +848,7 @@ public class WebDavStore extends Store {
                                       response.getStatusLine().toString());
             }
         } catch (SSLException e) {
-            throw new CertificateValidationException(e.getMessage(), e);
+            throw new CertificateValidationException(e.getMessage(), e, mAccount, true);
         } catch (IOException ioe) {
             Log.e(K9.LOG_TAG, "IOException: " + ioe + "\nTrace: " + processException(ioe));
             throw new MessagingException("IOException", ioe);
@@ -1945,7 +1945,7 @@ public class WebDavStore extends Store {
                     if (!messageURL.endsWith("/")) {
                         messageURL += "/";
                     }
-                    messageURL += URLEncoder.encode(message.getUid() + ":" + System.currentTimeMillis() + ".eml", "UTF-8");
+                    messageURL += URLEncoder.encode(message.getUid() + ":" + System.currentTimeMillis() + ".eml");
 
                     Log.i(K9.LOG_TAG, "Uploading message as " + messageURL);
 

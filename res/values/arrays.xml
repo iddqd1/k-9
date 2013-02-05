@@ -630,7 +630,6 @@
     </string-array>
 
     <string-array name="settings_preview_lines_values">
-        <item>0</item>
         <item>1</item>
         <item>2</item>
         <item>3</item>
@@ -640,7 +639,6 @@
     </string-array>
 
     <string-array name="settings_preview_lines_entries">
-        <item>0</item>
         <item>1</item>
         <item>2</item>
         <item>3</item>
@@ -715,15 +713,4 @@
         <item name="3">ALWAYS</item>
     </string-array>
 
-    <string-array name="global_settings_splitview_mode_entries">
-        <item>@string/global_settings_splitview_always</item>
-        <item>@string/global_settings_splitview_never</item>
-        <item>@string/global_settings_splitview_when_in_landscape</item>
-    </string-array>
-
-    <string-array name="global_settings_splitview_mode_values">
-        <item>ALWAYS</item>
-        <item>NEVER</item>
-        <item>WHEN_IN_LANDSCAPE</item>
-    </string-array>
 </resources>

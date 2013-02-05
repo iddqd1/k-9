@@ -26,6 +26,11 @@ public class K9FragmentActivity extends SherlockFragmentActivity implements K9Ac
     }
 
     @Override
+    public int getThemeBackgroundColor() {
+        return mBase.getThemeBackgroundColor();
+    }
+
+    @Override
     public void setupGestureDetector(OnSwipeGestureListener listener) {
         mBase.setupGestureDetector(listener);
     }

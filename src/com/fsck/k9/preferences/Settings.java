@@ -35,7 +35,7 @@ public class Settings {
      *
      * @see SettingsExporter
      */
-    public static final int VERSION = 23;
+    public static final int VERSION = 22;
 
     public static Map<String, Object> validate(int version, Map<String,
             TreeMap<Integer, SettingsDescription>> settings,
@@ -457,18 +457,19 @@ public class Settings {
      * {@link Enum#toString()} is used to obtain the "pretty" string representation.
      * </p>
      */
-    public static class EnumSetting<T extends Enum<T>> extends SettingsDescription {
-        private Class<T> mEnumClass;
+    public static class EnumSetting extends SettingsDescription {
+        private Class<? extends Enum<?>> mEnumClass;
 
-        public EnumSetting(Class<T> enumClass, Object defaultValue) {
+        public EnumSetting(Class<? extends Enum<?>> enumClass, Object defaultValue) {
             super(defaultValue);
             mEnumClass = enumClass;
         }
 
+        @SuppressWarnings("unchecked")
         @Override
         public Object fromString(String value) throws InvalidSettingValueException {
             try {
-                return Enum.valueOf(mEnumClass, value);
+                return Enum.valueOf((Class<? extends Enum>)mEnumClass, value);
             } catch (Exception e) {
                 throw new InvalidSettingValueException();
             }

@@ -42,6 +42,7 @@ import com.fsck.k9.service.BootReceiver;
 import com.fsck.k9.service.MailService;
 import com.fsck.k9.service.ShutdownReceiver;
 import com.fsck.k9.service.StorageGoneReceiver;
+import pl.wp.cloud.service.AutoUploadService;
 
 public class K9 extends Application {
     public static final int THEME_LIGHT = 0;
@@ -210,15 +211,6 @@ public class K9 extends Application {
         NEVER
     }
 
-    /**
-     * Controls when to use the message list split view.
-     */
-    public enum SplitViewMode {
-        ALWAYS,
-        NEVER,
-        WHEN_IN_LANDSCAPE
-    }
-
     private static boolean mMessageListCheckboxes = false;
     private static int mMessageListPreviewLines = 2;
 
@@ -239,6 +231,8 @@ public class K9 extends Application {
     private static boolean mCountSearchMessages = true;
     private static boolean mHideSpecialAccounts = false;
     private static boolean mMobileOptimizedLayout = false;
+    private static boolean mFileSynchronizationEnable = true;
+    private static boolean mFileSynchronizationWifiOnly = true;
     private static boolean mQuietTimeEnabled = false;
     private static String mQuietTimeStarts = null;
     private static String mQuietTimeEnds = null;
@@ -260,7 +254,6 @@ public class K9 extends Application {
 
     private static boolean sUseBackgroundAsUnreadIndicator = true;
     private static boolean sThreadedViewEnabled = true;
-    private static SplitViewMode sSplitViewMode = SplitViewMode.NEVER;
 
     /**
      * @see #areDatabasesUpToDate()
@@ -361,9 +354,9 @@ public class K9 extends Application {
     // Must not conflict with an account number
     public static final int FETCHING_EMAIL_NOTIFICATION      = -5000;
     public static final int SEND_FAILED_NOTIFICATION      = -1500;
-    public static final int CERTIFICATE_EXCEPTION_NOTIFICATION_INCOMING = -2000;
-    public static final int CERTIFICATE_EXCEPTION_NOTIFICATION_OUTGOING = -2500;
     public static final int CONNECTIVITY_ID = -3;
+    public static final int CERTIFICATE_EXCEPTION_NOTIFICATION_INCOMING = -4;
+    public static final int CERTIFICATE_EXCEPTION_NOTIFICATION_OUTGOING = -5;
 
 
     public static class Intents {
@@ -494,6 +487,8 @@ public class K9 extends Application {
         editor.putBoolean("useVolumeKeysForNavigation", mUseVolumeKeysForNavigation);
         editor.putBoolean("useVolumeKeysForListNavigation", mUseVolumeKeysForListNavigation);
         editor.putBoolean("mobileOptimizedLayout", mMobileOptimizedLayout);
+        editor.putBoolean("fileSynchronizationEnable", mFileSynchronizationEnable);
+        editor.putBoolean("fileSynchronizationWifiOnly", mFileSynchronizationWifiOnly);
         editor.putBoolean("quietTimeEnabled", mQuietTimeEnabled);
         editor.putString("quietTimeStarts", mQuietTimeStarts);
         editor.putString("quietTimeEnds", mQuietTimeEnds);
@@ -540,7 +535,6 @@ public class K9 extends Application {
         editor.putString("attachmentdefaultpath", mAttachmentDefaultPath);
         editor.putBoolean("useBackgroundAsUnreadIndicator", sUseBackgroundAsUnreadIndicator);
         editor.putBoolean("threadedView", sThreadedViewEnabled);
-        editor.putString("splitViewMode", sSplitViewMode.name());
         fontSizes.save(editor);
     }
 
@@ -569,6 +563,10 @@ public class K9 extends Application {
 
         setServicesEnabled(this);
         registerReceivers();
+        Intent myIntent = new Intent(getApplicationContext(), AutoUploadService.class);
+
+        startService(myIntent);
+
 
         MessagingController.getInstance(this).addListener(new MessagingListener() {
             private void broadcastIntent(String action, Account account, String folder, Message message) {
@@ -695,7 +693,8 @@ public class K9 extends Application {
         mMessageListPreviewLines = sprefs.getInt("messageListPreviewLines", 2);
 
         mMobileOptimizedLayout = sprefs.getBoolean("mobileOptimizedLayout", false);
-
+        mFileSynchronizationEnable = sprefs.getBoolean("fileSynchronizationEnable", true);
+        mFileSynchronizationWifiOnly = sprefs.getBoolean("fileSynchronizationWifiOnly", true);
         mQuietTimeEnabled = sprefs.getBoolean("quietTimeEnabled", false);
         mQuietTimeStarts = sprefs.getString("quietTimeStarts", "21:00");
         mQuietTimeEnds = sprefs.getString("quietTimeEnds", "7:00");
@@ -746,11 +745,6 @@ public class K9 extends Application {
         String notificationQuickDelete = sprefs.getString("notificationQuickDelete", null);
         if (notificationQuickDelete != null) {
             sNotificationQuickDelete = NotificationQuickDelete.valueOf(notificationQuickDelete);
-        }
-
-        String splitViewMode = sprefs.getString("splitViewMode", null);
-        if (splitViewMode != null) {
-            sSplitViewMode = SplitViewMode.valueOf(splitViewMode);
         }
 
         mAttachmentDefaultPath = sprefs.getString("attachmentdefaultpath",  Environment.getExternalStorageDirectory().toString());
@@ -905,6 +899,24 @@ public class K9 extends Application {
     public static void setMobileOptimizedLayout(boolean mobileOptimizedLayout) {
         mMobileOptimizedLayout = mobileOptimizedLayout;
     }
+
+
+    public static boolean getFileSynchronizationEnable() {
+        return mFileSynchronizationEnable;
+    }
+
+    public static void setFileSynchronizationEnable(boolean mFileSynchronizationEnable) {
+        K9.mFileSynchronizationEnable = mFileSynchronizationEnable;
+    }
+
+    public static boolean getFileSynchronizationWifiOnly() {
+        return mFileSynchronizationWifiOnly;
+    }
+
+    public static void setFileSynchronizationWifiOnly(boolean mFileSynchronizationWifiOnly) {
+        K9.mFileSynchronizationWifiOnly = mFileSynchronizationWifiOnly;
+    }
+
 
     public static boolean getQuietTimeEnabled() {
         return mQuietTimeEnabled;
@@ -1234,10 +1246,10 @@ public class K9 extends Application {
     }
 
     public static boolean wrapFolderNames() {
-        return mWrapFolderNames;
+    	return mWrapFolderNames;
     }
     public static void setWrapFolderNames(final boolean state) {
-        mWrapFolderNames = state;
+    	mWrapFolderNames = state;
     }
 
     public static String getAttachmentDefaultPath() {
@@ -1281,14 +1293,6 @@ public class K9 extends Application {
 
     public static synchronized void setThreadedViewEnabled(boolean enable) {
         sThreadedViewEnabled = enable;
-    }
-
-    public static synchronized SplitViewMode getSplitViewMode() {
-        return sSplitViewMode;
-    }
-
-    public static synchronized void setSplitViewMode(SplitViewMode mode) {
-        sSplitViewMode = mode;
     }
 
     /**

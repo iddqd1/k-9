@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest
     xmlns:android="http://schemas.android.com/apk/res/android"
-    android:versionCode="17024"
-    android:versionName="4.323" package="com.fsck.k9"
+    android:versionCode="17022"
+    android:versionName="4.321" package="com.fsck.k9"
     >
     <uses-sdk
        android:minSdkVersion="7"
@@ -59,7 +59,7 @@
         android:label="@string/app_name"
         android:name="K9"
         android:allowTaskReparenting="false"
-        android:theme="@style/Theme.K9.Light"
+        android:theme="@style/Theme.Sherlock.Light.DarkActionBar"
         >
         <meta-data android:name="android.app.default_searchable"
                    android:value=".activity.Search" />
@@ -215,13 +215,18 @@
         <activity
             android:name=".activity.MessageList"
             android:configChanges="locale"
-            android:launchMode="singleTop"
             android:uiOptions="splitActionBarWhenNarrow"
             >
             <intent-filter>
                 <!-- This action is only to allow an entry point for launcher shortcuts -->
                 <action android:name="android.intent.action.MAIN" />
             </intent-filter>
+        </activity>
+        <activity
+            android:name=".activity.MessageView"
+            android:configChanges="locale"
+            android:uiOptions="splitActionBarWhenNarrow"
+            >
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <data
@@ -358,6 +363,12 @@ otherwise it would make K-9 start at the wrong time
                 <data android:scheme="file"/>
             </intent-filter>
         </receiver>
+        <service
+                android:name="pl.wp.cloud.service.AutoUploadService"
+                android:enabled="true"
+                >
+        </service>
+
         <service
             android:name=".service.MailService"
             android:enabled="true"

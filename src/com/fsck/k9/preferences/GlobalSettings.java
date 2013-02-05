@@ -18,7 +18,6 @@ import com.fsck.k9.Account;
 import com.fsck.k9.FontSizes;
 import com.fsck.k9.K9;
 import com.fsck.k9.K9.NotificationHideSubject;
-import com.fsck.k9.K9.SplitViewMode;
 import com.fsck.k9.R;
 import com.fsck.k9.Account.SortType;
 import com.fsck.k9.helper.DateFormatter;
@@ -44,8 +43,7 @@ public class GlobalSettings {
                 new V(1, new DirectorySetting(Environment.getExternalStorageDirectory().toString()))
             ));
         s.put("backgroundOperations", Settings.versions(
-                new V(1, new EnumSetting<K9.BACKGROUND_OPS>(
-                        K9.BACKGROUND_OPS.class, K9.BACKGROUND_OPS.WHEN_CHECKED))
+                new V(1, new EnumSetting(K9.BACKGROUND_OPS.class, K9.BACKGROUND_OPS.WHEN_CHECKED))
             ));
         s.put("changeRegisteredNameColor", Settings.versions(
                 new V(1, new BooleanSetting(false))
@@ -176,7 +174,7 @@ public class GlobalSettings {
                 new V(1, new BooleanSetting(true))
             ));
         s.put("sortTypeEnum", Settings.versions(
-                new V(10, new EnumSetting<SortType>(SortType.class, Account.DEFAULT_SORT_TYPE))
+                new V(10, new EnumSetting(SortType.class, Account.DEFAULT_SORT_TYPE))
             ));
         s.put("sortAscending", Settings.versions(
                 new V(10, new BooleanSetting(Account.DEFAULT_SORT_ASCENDING))
@@ -221,17 +219,14 @@ public class GlobalSettings {
                 new V(8, new BooleanSetting(true))
             ));
         s.put("notificationHideSubject", Settings.versions(
-                new V(12, new EnumSetting<NotificationHideSubject>(
-                        NotificationHideSubject.class, NotificationHideSubject.NEVER))
+                new V(12, new EnumSetting(NotificationHideSubject.class,
+                        NotificationHideSubject.NEVER))
             ));
         s.put("useBackgroundAsUnreadIndicator", Settings.versions(
                 new V(19, new BooleanSetting(true))
             ));
         s.put("threadedView", Settings.versions(
                 new V(20, new BooleanSetting(true))
-            ));
-        s.put("splitViewMode", Settings.versions(
-                new V(23, new EnumSetting<SplitViewMode>(SplitViewMode.class, SplitViewMode.NEVER))
             ));
 
         SETTINGS = Collections.unmodifiableMap(s);

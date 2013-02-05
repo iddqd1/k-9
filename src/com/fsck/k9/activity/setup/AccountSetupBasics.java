@@ -8,12 +8,14 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.XmlResourceParser;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import com.fsck.k9.*;
 import com.fsck.k9.activity.K9Activity;
@@ -37,13 +39,17 @@ public class AccountSetupBasics extends K9Activity
     private final static int DIALOG_NOTE = 1;
     private final static String STATE_KEY_PROVIDER =
         "com.fsck.k9.AccountSetupBasics.provider";
+    private final static String DEFAULT_PROVIDER = "@wp.pl";
 
+    private Preferences mPrefs;
     private EditText mEmailView;
     private EditText mPasswordView;
     private Button mNextButton;
     private Button mManualSetupButton;
     private Account mAccount;
     private Provider mProvider;
+
+
 
     private EmailAddressValidator mEmailValidator = new EmailAddressValidator();
 
@@ -56,7 +62,10 @@ public class AccountSetupBasics extends K9Activity
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.account_setup_basics);
+        mPrefs = Preferences.getPreferences(this);
         mEmailView = (EditText)findViewById(R.id.account_email);
+        mEmailView.setText(DEFAULT_PROVIDER);
+        mEmailView.setSelection(0);
         mPasswordView = (EditText)findViewById(R.id.account_password);
         mNextButton = (Button)findViewById(R.id.next);
         mManualSetupButton = (Button)findViewById(R.id.manual_setup);

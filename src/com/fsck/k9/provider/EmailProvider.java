@@ -89,16 +89,6 @@ public class EmailProvider extends ContentProvider {
         InternalMessageColumns.MIME_TYPE
     };
 
-    private static final Map<String, String> THREAD_AGGREGATION_FUNCS = new HashMap<String, String>();
-    static {
-        THREAD_AGGREGATION_FUNCS.put(MessageColumns.DATE, "MAX");
-        THREAD_AGGREGATION_FUNCS.put(MessageColumns.INTERNAL_DATE, "MAX");
-        THREAD_AGGREGATION_FUNCS.put(MessageColumns.ATTACHMENT_COUNT, "SUM");
-        THREAD_AGGREGATION_FUNCS.put(MessageColumns.READ, "MIN");
-        THREAD_AGGREGATION_FUNCS.put(MessageColumns.FLAGGED, "MAX");
-        THREAD_AGGREGATION_FUNCS.put(MessageColumns.ANSWERED, "MIN");
-        THREAD_AGGREGATION_FUNCS.put(MessageColumns.FORWARDED, "MIN");
-    }
     private static final String[] FIXUP_MESSAGES_COLUMNS = {
         MessageColumns.ID
     };
@@ -123,6 +113,13 @@ public class EmailProvider extends ContentProvider {
     };
 
     private static final String THREADS_TABLE = "threads";
+
+    private static final String[] THREADS_COLUMNS = {
+        ThreadColumns.ID,
+        ThreadColumns.MESSAGE_ID,
+        ThreadColumns.ROOT,
+        ThreadColumns.PARENT
+    };
 
     static {
         UriMatcher matcher = sUriMatcher;
@@ -398,12 +395,10 @@ public class EmailProvider extends ContentProvider {
                             first = false;
                         }
 
-                        final String aggregationFunc = THREAD_AGGREGATION_FUNCS.get(columnName);
-
                         if (MessageColumns.ID.equals(columnName)) {
                             query.append("u." + MessageColumns.ID + " AS " + MessageColumns.ID);
-                        } else if (aggregationFunc != null) {
-                            query.append(aggregationFunc + "(" + columnName + ") AS " + columnName);
+                        } else if (MessageColumns.DATE.equals(columnName)) {
+                            query.append("MAX(date) AS " + MessageColumns.DATE);
                         } else if (SpecialColumns.THREAD_COUNT.equals(columnName)) {
                             query.append("COUNT(g) AS " + SpecialColumns.THREAD_COUNT);
                         } else {

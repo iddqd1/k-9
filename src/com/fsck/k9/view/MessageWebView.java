@@ -167,13 +167,13 @@ public class MessageWebView extends TitleBarWebView {
      * Emulate the shift key being pressed to trigger the text selection mode
      * of a WebView.
      */
-    @Override
+    //@Override
     public void emulateShiftHeld() {
         try {
 
             KeyEvent shiftPressEvent = new KeyEvent(0, 0, KeyEvent.ACTION_DOWN,
                                                     KeyEvent.KEYCODE_SHIFT_LEFT, 0, 0);
-            shiftPressEvent.dispatch(this, null, null);
+            shiftPressEvent.dispatch(this);
             Toast.makeText(getContext() , R.string.select_text_now, Toast.LENGTH_SHORT).show();
         } catch (Exception e) {
             Log.e(K9.LOG_TAG, "Exception in emulateShiftHeld()", e);

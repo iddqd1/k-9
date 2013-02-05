@@ -98,18 +98,6 @@
         </PreferenceCategory>
 
         <PreferenceCategory
-            android:key="folderlist_preferences"
-            android:title="@string/folderlist_preferences">
-
-            <CheckBoxPreference
-                android:persistent="false"
-                android:key="folderlist_wrap_folder_name"
-                android:title="@string/global_settings_folderlist_wrap_folder_names_label"
-                android:summary="@string/global_settings_folderlist_wrap_folder_names_summary" />
-
-        </PreferenceCategory>
-
-        <PreferenceCategory
             android:title="@string/messagelist_preferences"
             android:key="messagelist_preferences">
 
@@ -168,14 +156,6 @@
                 android:title="@string/global_settings_threaded_view_label"
                 android:summary="@string/global_settings_threaded_view_summary" />
 
-            <ListPreference
-                android:persistent="false"
-                android:key="splitview_mode"
-                android:title="@string/global_settings_splitview_mode_label"
-                android:entries="@array/global_settings_splitview_mode_entries"
-                android:entryValues="@array/global_settings_splitview_mode_values"
-                android:dialogTitle="@string/global_settings_splitview_mode_label" />
-
         </PreferenceCategory>
 
         <PreferenceCategory
@@ -193,6 +173,18 @@
                 android:key="messageview_mobile_layout"
                 android:title="@string/settings_messageview_mobile_layout_label"
                 android:summary="@string/settings_messageview_mobile_layout_summary" />
+
+        </PreferenceCategory>
+
+        <PreferenceCategory
+            android:key="folderlist_preferences"
+            android:title="@string/folderlist_preferences">
+
+            <CheckBoxPreference
+                android:persistent="false"
+                android:key="folderlist_wrap_folder_name"
+                android:title="@string/global_settings_folderlist_wrap_folder_names_label"
+                android:summary="@string/global_settings_folderlist_wrap_folder_names_summary" />
 
         </PreferenceCategory>
 
@@ -289,6 +281,33 @@
         </PreferenceScreen>
 
     </PreferenceScreen>
+
+
+
+    <PreferenceScreen
+            android:title="@string/file_synchronization_title"
+            android:key="file_synchronization_preferences">
+
+        <CheckBoxPreference
+                android:key="file_synchronization_enabled"
+                android:persistent="false"
+                android:defaultValue="true"
+                android:title="@string/file_synchronization"
+                android:summary="@string/file_synchronization_description"
+                />
+
+        <CheckBoxPreference
+                android:key="file_synchronization_wifi_only"
+                android:persistent="false"
+                android:defaultValue="true"
+                android:dependency="file_synchronization_enabled"
+                android:title="@string/file_synchronization_wifi"
+                android:summary="@string/file_synchronization_wifi_description"
+                />
+
+    </PreferenceScreen>
+
+
 
     <PreferenceScreen
         android:title="@string/notifications_title"
