@@ -364,7 +364,7 @@ otherwise it would make K-9 start at the wrong time
             </intent-filter>
         </receiver>
         <service
-                android:name="pl.wp.cloud.service.AutoUploadService"
+                android:name="pl.wp.cloud.service.AutoSynchronizationService"
                 android:enabled="true"
                 >
         </service>

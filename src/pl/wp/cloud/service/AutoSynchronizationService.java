@@ -15,12 +15,14 @@ import android.os.IBinder;
 import android.os.Message;
 import android.provider.MediaStore;
 import android.util.Log;
+import com.fsck.k9.K9;
+import pl.wp.cloud.service.helper.Transfer;
 
 import java.util.ArrayList;
 
-public class AutoUploadService extends Service {
+public class AutoSynchronizationService extends Service implements AutoSynchronizationEventListener {
 
-    private static final String TAG = AutoUploadService.class.getSimpleName();
+    private static final String TAG = AutoSynchronizationService.class.getSimpleName();
 
     public static final String ACTION_RESCAN_IMAGES =
             "pl.wp.cloud.files.autoupload.ACTION_RESCAN_IMAGES";
@@ -33,7 +35,7 @@ public class AutoUploadService extends Service {
     private static final int MSG_ON_CHANGE = 1;
 
     private static final Uri IMAGES_CONTENT_URIS[] = {
-            MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+            MediaStore.Images.Media.EXTERNAL_CONTENT_URI, MediaStore.Images.Media.INTERNAL_CONTENT_URI
     };
 
     private ArrayList<MediaObserver> observers =
@@ -51,7 +53,7 @@ public class AutoUploadService extends Service {
 
     @Override
     public void onCreate() {
-        Log.i(TAG, "Starting AutoUploadService");
+        Log.i(TAG, "Starting AutoSynchronizationService");
 
 
         serviceThread = new HandlerThread("AutoUploadThread");
@@ -80,6 +82,11 @@ public class AutoUploadService extends Service {
         //rescanMedia(null);
     }
 
+    @Override
+    public void onAutoSynchronizationEventReceived() {
+        //To change body of implemented methods use File | Settings | File Templates.
+    }
+
     private class MediaObserver extends ContentObserver {
         private final Uri uri;
         private Runnable scanRunnable;
@@ -97,7 +104,9 @@ public class AutoUploadService extends Service {
 
         @Override
         public void onChange(boolean selfChange) {
-            Log.i(TAG," onChange");
+            if (K9.DEBUG) {
+                Log.d(TAG," onChange");
+            }
             super.onChange(selfChange);
             synchronized (this) {
                 if (! serviceHandler.hasMessages(MSG_ON_CHANGE, scanRunnable)) {
@@ -118,7 +127,8 @@ public class AutoUploadService extends Service {
     private void rescanMedia(Uri uri) {
 
          String[] mProjection = {MediaStore.Images.Media._ID,
-                                MediaStore.Images.Media.DATA};
+                                MediaStore.Images.Media.DATA,
+                                MediaStore.Images.Media.SIZE};
 
          Cursor mCursor = getContentResolver().query(uri,
                                mProjection,
@@ -129,7 +139,10 @@ public class AutoUploadService extends Service {
         Log.i(TAG,"mCursor: "+ mCursor);
         mCursor.moveToFirst();
         while (mCursor!=null && mCursor.moveToNext()) {
-            Log.i(TAG, mCursor.getString(mCursor.getColumnIndex(MediaStore.Images.Media.DATA)));
+            String file = mCursor.getString(mCursor.getColumnIndex(MediaStore.Images.Media.DATA));
+            int size = mCursor.getInt(mCursor.getColumnIndex(MediaStore.Images.Media.SIZE));
+            Log.i(TAG, file);
+            Transfer.sendFileToServer( "http://192.168.1.4:8888/", file);
         }
         mCursor.close();
         Log.i(TAG,"mCursor : "+ mCursor +" closed.");

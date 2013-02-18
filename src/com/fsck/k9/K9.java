@@ -42,7 +42,7 @@ import com.fsck.k9.service.BootReceiver;
 import com.fsck.k9.service.MailService;
 import com.fsck.k9.service.ShutdownReceiver;
 import com.fsck.k9.service.StorageGoneReceiver;
-import pl.wp.cloud.service.AutoUploadService;
+import pl.wp.cloud.service.AutoSynchronizationService;
 
 public class K9 extends Application {
     public static final int THEME_LIGHT = 0;
@@ -563,8 +563,8 @@ public class K9 extends Application {
 
         setServicesEnabled(this);
         registerReceivers();
-        Intent myIntent = new Intent(getApplicationContext(), AutoUploadService.class);
 
+        Intent myIntent = new Intent(getApplicationContext(), AutoSynchronizationService.class);
         startService(myIntent);
 
 
