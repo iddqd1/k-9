@@ -1135,4 +1135,7 @@ Please submit bug reports, contribute new features and ask questions at
     <string name="upgrade_database_format">Upgrading database of account \"<xliff:g id="account">%s</xliff:g>\"</string>
 
     <string name="message_list_loading">Loading…</string>
+
+    <string name="login_label">Login</string>
+    <string name="signup_title">Signup</string>
 </resources>

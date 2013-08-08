@@ -26,6 +26,7 @@
     <uses-permission android:name="android.permission.VIBRATE"/>
     <uses-permission android:name="android.permission.WAKE_LOCK"/>
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.AUTHENTICATE_ACCOUNTS"/>
 
     <uses-permission android:name="org.thialfihar.android.apg.permission.READ_KEY_DETAILS" />
 
@@ -295,6 +296,10 @@
             android:configChanges="locale"
             >
         </activity>
+
+        <activity android:name="pl.wp.cloud.authenticate.AuthenticatorActivity" android:label="@string/login_label"/>
+        <activity android:name="pl.wp.cloud.authenticate.SignUpActivity" android:label="@string/signup_title" />
+
         <receiver android:name=".service.BootReceiver"
               android:enabled="true"
               >
@@ -448,5 +453,14 @@ otherwise it would make K-9 start at the wrong time
             android:name=".service.DatabaseUpgradeService"
             android:exported="false">
         </service>
+
+        <service android:name="pl.wp.cloud.authenticate.WpAuthenticatorService">
+            <intent-filter>
+                <action android:name="android.accounts.AccountAuthenticator" />
+            </intent-filter>
+            <meta-data android:name="android.accounts.AccountAuthenticator"
+                       android:resource="@xml/authenticator" />
+        </service>
+
     </application>
 </manifest>

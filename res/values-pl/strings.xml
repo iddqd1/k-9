@@ -363,7 +363,7 @@ Wszelkie zgłoszenia usterek, zapytania oraz nowe pomysły prosimy przesyłać z
     <string name="account_setup_check_settings_canceling_msg">Przerywam…</string>
 
     <string name="account_setup_names_title">Prawie gotowe!</string>
-    <string name="account_setup_names_account_name_label">Wpisz nazwę (opcjonalną) tego konta:</string>
+    <string name="account_setup_names_account_name_label">Nazwa tego konta:</string>
     <string name="account_setup_names_user_name_label">Twoje imię i nazwisko (pojawi się w wysyłanych wiadomościach):</string>
 
     <string name="account_setup_account_type_title">Rodzaj konta</string>
